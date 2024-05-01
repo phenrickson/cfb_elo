@@ -1,0 +1,8 @@
+name|type|data|command|depend|seed|path|time|size|bytes|format|repository|iteration|parent|children|seconds|warnings|error
+calendar|stem|82157dd14bf79a08|65cb5f7d47929348|01b2e41387a5fbf2|-1668552682||t19844.589302278s|de567b76fc5c7a10|11183|qs|local|vector|||112.682||
+games|stem|d7fdd9bf248dc96b|b3c746efcff88858|cfc6a0e2f01301b9|1986910045||t19844.5879980155s|3fbd5d4ea32d2312|1907199|qs|local|vector|||110.895||
+games_prepared|stem|1b6ba65953e0f8a1|ea999f5037a1a48f|9c398a61abc24401|270007526||t19844.6084264441s|cca43ba544a8cd99|1183962|qs|local|vector|||0.043||
+load_cfb_calendar|function|347ae49ffc08d798|||||||||||||||
+load_cfb_games|function|379f12448e5e8ba2|||||||||||||||
+prep_cfb_games|function|5ff8200b24ab8828|||||||||||||||
+seasons|stem|4639a26e9d41a526|c05ad05b2f958afa|2c530c1562a7fbd1|-1489586350||t19844.5759181539s|c42ecae9632ec359|208|qs|local|vector|||2.54||
