@@ -5,7 +5,7 @@
 
 # Load packages required to define the pipeline:
 library(targets)
-# library(tarchetypes) # Load other packages as needed.
+library(tarchetypes) # Load other packages as needed.
 
 # Set target options:
 tar_option_set(
@@ -16,7 +16,13 @@ tar_option_set(
 
 # Run the R scripts in the R/ folder with your custom functions:
 tar_source("src/data/load_data.R")
-tar_source("src/models/calc_elo_ratings.R")
+tar_source("src/models/elo.R")
+tar_source("src/models/assess.R")
+tar_source("src/visualizations/plots.R")
+
+teams_to_plot = data.frame(
+        team = c("Wisconsin", "Oregon", "Texas A&M")
+)
 
 # Replace the target list below with your own:
 list(
@@ -24,11 +30,6 @@ list(
                 name = seasons,
                 command = 
                         1869:cfbfastR:::most_recent_cfb_season()
-        ),
-        tar_target(
-                name = calendar,
-                command = 
-                        load_cfb_calendar(seasons)
         ),
         tar_target(
                 name = games,
@@ -45,7 +46,6 @@ list(
                 name = elo,
                 command = 
                         games_prepared |>
-                        rename_all(toupper) |>
                         calc_elo_ratings(home_field_advantage = 75,
                                          reversion = 0,
                                          k = 35,
@@ -59,7 +59,51 @@ list(
         ),
         tar_target(
                 name = elo_teams,
+                command = elo$team_outcomes
+        ),
+        tar_map(
+                values = teams_to_plot,
+                names = "team",
+                tar_target(
+                        elo_plot,
+                        command = 
+                                elo_teams |>
+                                plot_historical_elo(
+                                        highlight_team = team
+                                )
+                )
+        ),
+        tar_target(
+                name = predictions,
                 command = 
-                        elo$team_outcomes
+                        elo_games |>
+                        add_elo_predictions()
+        ),
+        tar_target(
+                name = metrics,
+                command = predictions |>
+                        assess_predictions(),
+                packages = c("yardstick")
+        ),
+        tar_target(
+                name = calibration,
+                command = 
+                        predictions |>
+                        plot_calibration(),
+                packages = c("probably")
+        ),
+        tar_target(
+                name = regression,
+                command = 
+                        elo_games |>
+                        add_spread_features() |>
+                        model_spread()
+        ),
+        tar_target(
+                name = spread,
+                command = 
+                        regression |>
+                        augment(),
+                packages = c("broom", "tune")
         )
 )

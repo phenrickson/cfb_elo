@@ -246,3 +246,44 @@ get_expected_score <-
                 return(1 / (1 + 10^((opponent_rating - team_rating) / v)))
         }
 
+
+add_elo_predictions = function(data) {
+        
+        data |>
+                mutate(
+                        home_pred = 
+                                case_when(
+                                        home_prob >=.5 ~ 'yes',
+                                        TRUE ~ 'no'
+                                )
+                ) |>
+                mutate(
+                        home_win = case_when(
+                                home_outcome == 'win' ~ 'yes',
+                                TRUE ~ 'no')
+                ) |>
+                mutate(home_pred = factor(home_pred, levels = c("no", "yes")),
+                       home_win = factor(home_win, levels = c("no", "yes")))
+}
+
+add_spread_features = function(data) {
+        
+        
+        data |>
+                mutate(home_score_diff = home_points - away_points,
+                       home_elo_diff = home_pregame_elo - away_pregame_elo,
+                       home_game = case_when(neutral_site == F ~ 1,
+                                             TRUE ~ 0),
+                       neutral_site = case_when(neutral_site == T ~ 1,
+                                                TRUE ~ 0)
+                )
+}
+
+model_spread = function(data) {
+        
+        data %>%
+                lm(
+                        home_score_diff ~ home_elo_diff + home_game -1,
+                        data = .
+                )
+}
