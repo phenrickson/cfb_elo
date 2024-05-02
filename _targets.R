@@ -43,7 +43,7 @@ list(
                         prep_cfb_games()
         ),
         tar_target(
-                name = elo,
+                name = elo_ratings,
                 command = 
                         games_prepared |>
                         calc_elo_ratings(home_field_advantage = 75,
@@ -55,11 +55,11 @@ list(
         tar_target(
                 name = elo_games,
                 command = 
-                        elo$game_outcomes
+                        elo_ratings$game_outcomes
         ),
         tar_target(
                 name = elo_teams,
-                command = elo$team_outcomes
+                command = elo_ratings$team_outcomes
         ),
         tar_map(
                 values = teams_to_plot,
@@ -74,35 +74,35 @@ list(
                 )
         ),
         tar_target(
-                name = predictions,
+                name = elo_predictions,
                 command = 
                         elo_games |>
                         add_elo_predictions()
         ),
         tar_target(
                 name = metrics,
-                command = predictions |>
+                command = elo_predictions |>
                         assess_predictions(),
                 packages = c("yardstick")
         ),
         tar_target(
                 name = calibration,
                 command = 
-                        predictions |>
+                        elo_predictions |>
                         plot_calibration(),
                 packages = c("probably")
         ),
         tar_target(
-                name = regression,
+                name = regression_spread,
                 command = 
                         elo_games |>
                         add_spread_features() |>
                         model_spread()
         ),
         tar_target(
-                name = spread,
+                name = spread_predictions,
                 command = 
-                        regression |>
+                        regression_spread |>
                         augment(),
                 packages = c("broom", "tune")
         )
