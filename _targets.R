@@ -77,17 +77,22 @@ list(
                 packages = c("probably")
         ),
         tar_target(
-                name = regression_spread,
+                name = spread_games,
                 command = 
                         elo_games |>
-                        add_spread_features() |>
+                        add_spread_features()
+        ),
+        tar_target(
+                name = spread_regression,
+                command = 
+                        spread_games |>
                         model_spread()
         ),
         tar_target(
                 name = spread_predictions,
                 command = 
-                        regression_spread |>
-                        augment(),
+                        spread_regression |>
+                        augment(newdata = spread_games),
                 packages = c("broom", "tune")
         )
 )
