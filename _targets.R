@@ -20,10 +20,6 @@ tar_source("src/models/elo.R")
 tar_source("src/models/assess.R")
 tar_source("src/visualizations/plots.R")
 
-teams_to_plot = data.frame(
-        team = c("Wisconsin", "Oregon", "Texas A&M")
-)
-
 # Replace the target list below with your own:
 list(
         tar_target(
@@ -43,7 +39,7 @@ list(
                         prep_cfb_games()
         ),
         tar_target(
-                name = elo,
+                name = elo_ratings,
                 command = 
                         games_prepared |>
                         calc_elo_ratings(home_field_advantage = 75,
@@ -55,55 +51,48 @@ list(
         tar_target(
                 name = elo_games,
                 command = 
-                        elo$game_outcomes
+                        elo_ratings$game_outcomes
         ),
         tar_target(
                 name = elo_teams,
-                command = elo$team_outcomes
-        ),
-        tar_map(
-                values = teams_to_plot,
-                names = "team",
-                tar_target(
-                        elo_plot,
-                        command = 
-                                elo_teams |>
-                                plot_historical_elo(
-                                        highlight_team = team
-                                )
-                )
+                command = elo_ratings$team_outcomes
         ),
         tar_target(
-                name = predictions,
+                name = elo_predictions,
                 command = 
                         elo_games |>
                         add_elo_predictions()
         ),
         tar_target(
                 name = metrics,
-                command = predictions |>
+                command = elo_predictions |>
                         assess_predictions(),
                 packages = c("yardstick")
         ),
         tar_target(
                 name = calibration,
                 command = 
-                        predictions |>
+                        elo_predictions |>
                         plot_calibration(),
                 packages = c("probably")
         ),
         tar_target(
-                name = regression,
+                name = spread_games,
                 command = 
                         elo_games |>
-                        add_spread_features() |>
+                        add_spread_features()
+        ),
+        tar_target(
+                name = spread_regression,
+                command = 
+                        spread_games |>
                         model_spread()
         ),
         tar_target(
-                name = spread,
+                name = spread_predictions,
                 command = 
-                        regression |>
-                        augment(),
+                        spread_regression |>
+                        augment(newdata = spread_games),
                 packages = c("broom", "tune")
         )
 )
