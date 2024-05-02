@@ -20,10 +20,6 @@ tar_source("src/models/elo.R")
 tar_source("src/models/assess.R")
 tar_source("src/visualizations/plots.R")
 
-teams_to_plot = data.frame(
-        team = c("Wisconsin", "Oregon", "Texas A&M")
-)
-
 # Replace the target list below with your own:
 list(
         tar_target(
@@ -60,18 +56,6 @@ list(
         tar_target(
                 name = elo_teams,
                 command = elo_ratings$team_outcomes
-        ),
-        tar_map(
-                values = teams_to_plot,
-                names = "team",
-                tar_target(
-                        elo_plot,
-                        command = 
-                                elo_teams |>
-                                plot_historical_elo(
-                                        highlight_team = team
-                                )
-                )
         ),
         tar_target(
                 name = elo_predictions,
