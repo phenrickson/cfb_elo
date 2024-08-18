@@ -33,15 +33,16 @@ list(
                         load_cfb_games(years = seasons)
         ),
         tar_target(
-                name = games_prepared,
+                name = historical_games,
                 command = 
                         games |>
-                        prep_cfb_games()
+                        prep_cfb_games() |>
+                        filter(completed == T)
         ),
         tar_target(
                 name = elo_ratings,
                 command = 
-                        games_prepared |>
+                        historical_games |>
                         calc_elo_ratings(home_field_advantage = 75,
                                          reversion = 0,
                                          k = 35,
@@ -83,7 +84,7 @@ list(
                         add_spread_features()
         ),
         tar_target(
-                name = spread_regression,
+                name = spread_model,
                 command = 
                         spread_games |>
                         model_spread()
@@ -91,8 +92,19 @@ list(
         tar_target(
                 name = spread_predictions,
                 command = 
-                        spread_regression |>
+                        spread_model |>
                         augment(newdata = spread_games),
                 packages = c("broom", "tune")
+        ),
+        tar_target(
+                current_season_games,
+                command = 
+                        load_cfb_games(years = cfbfastR:::most_recent_cfb_season()) |>
+                        prep_cfb_games(),
+                cue = tar_cue_age(
+                        current_season_games,
+                        age = as.difftime(5, units = "days")
+                )
         )
+        
 )

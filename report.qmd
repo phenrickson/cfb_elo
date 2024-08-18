@@ -1,0 +1,158 @@
+---
+title: "Elo vs Vegas Spread"
+format: 
+        html:
+                echo: false
+                message: false
+                warning: false
+                fig-height: 6
+                fig-width: 8
+                embed-resources: true
+editor: source
+---
+
+```{r}
+#| include: false
+library(targets)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(broom)
+library(cfbfastR)
+
+# load in objects
+tar_load(elo_games)
+tar_load(elo_teams)
+tar_load(current_season_games)
+tar_load(spread_model)
+
+# src code
+tar_source("src")
+
+plot_elo_vs_vegas = function(data) {
+        
+        data |>
+                ggplot(aes(x=pred,
+                           y=spread))+
+                ggrepel::geom_text_repel(
+                        aes(label = legend),
+                        size =2
+                )+
+                geom_point()+
+                tune::coord_obs_pred()+
+                ggpubr::stat_cor(show.legend = FALSE)+
+                geom_vline(xintercept = 0, linetype = 'dashed')+
+                geom_hline(yintercept = 0, linetype = 'dashed')+
+                guides(text = 'none')+
+                theme_light()+
+                geom_abline(linetype = 'dotted')+
+                labs(x = 'Elo Spread',
+                     y = 'Vegas')
+        
+}
+
+
+```
+
+
+```{r}
+
+# extract elo from start of the season
+starting_elo = 
+        elo_teams |> 
+        filter(season <= cfbfastR:::most_recent_cfb_season(),
+               season >= cfbfastR:::most_recent_cfb_season()-1) |>
+        group_by(team) |>
+        slice_max(game_date, n =1, with_ties =F) |>
+        ungroup() |>
+        select(team,  
+               elo = postgame_elo)
+
+# get team most recent season
+elo_seasons = 
+        elo_teams |> 
+        filter(season <= cfbfastR:::most_recent_cfb_season(),
+               season >= cfbfastR:::most_recent_cfb_season()-1) |>
+        group_by(team) |>
+        slice_max(season, n =1, with_ties = F) |>
+        ungroup() |>
+        select(team, season) 
+
+team_elo = 
+        split(starting_elo$elo,
+              starting_elo$team)
+
+team_seasons =
+        split(elo_seasons$season,
+              starting_elo$team)
+
+current_season_elo = 
+        current_season_games |>
+        filter(week == 1) |>
+        left_join(
+                starting_elo |>
+                        rename(home_team = team,
+                               home_pregame_elo = elo)
+        ) |>
+        left_join(
+                starting_elo |>
+                        rename(away_team = team,
+                               away_pregame_elo = elo)
+        ) |>
+        mutate(across(contains("elo"), ~ replace_na(.x, 1200))) |>
+        add_spread_features()
+
+```
+
+```{r}
+
+predicted_spread = 
+        spread_model |>
+        augment(newdata = current_season_elo) |>
+        select(game_id, season, week, home_team, away_team, home_elo_diff, pred = .fitted) |>
+        mutate(pred = -round(pred/2)*2)
+
+betting_lines = 
+        cfbd_betting_lines(year = 2024, week = 1) |>
+        as_tibble()
+
+elo_and_betting_lines = 
+        betting_lines |>
+        filter(provider == 'DraftKings') |>
+        select(game_id, season, week, home_team, away_team, provider, spread, formatted_spread) |>
+        mutate(spread = as.numeric(spread)) |>
+        left_join(predicted_spread |>
+                          select(game_id, season, home_team, away_team, home_elo_diff, pred) |>
+                          mutate(legend = paste(home_team, away_team, sep = " vs "))) |>
+        mutate(diff = spread-pred)  |>
+        mutate(elo_spread = case_when(pred <=0 ~ paste(home_team, pred),
+                                      pred >0 ~ paste(away_team, pred)))
+
+```
+
+
+```{r}
+
+elo_and_betting_lines |>
+        plot_elo_vs_vegas() +
+        facet_wrap(season + paste("Week:", week)~.)
+
+```
+
+
+```{r}
+
+elo_and_betting_lines |>
+        select(season,
+               home = home_team,
+               away = away_team,
+               provider,
+               vegas_spread = formatted_spread,
+               elo_spread,
+               diff) |>
+        gt::gt() |>
+        gt::cols_align(align = "center") |>
+        gt::opt_interactive()
+
+```
+
