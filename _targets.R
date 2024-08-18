@@ -11,7 +11,7 @@ library(tarchetypes) # Load other packages as needed.
 tar_option_set(
         packages = c("tidyverse",
                      "cfbfastR"),
-        format = "qs",
+        format = "qs"
 )
 
 # Run the R scripts in the R/ folder with your custom functions:
@@ -105,6 +105,10 @@ list(
                         current_season_games,
                         age = as.difftime(5, units = "days")
                 )
+        ),
+        tar_render(
+                report,
+                "report.qmd"
         )
         
 )

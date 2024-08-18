@@ -22,6 +22,7 @@ plot_elo_historical_team|function|6f48cb95476dc182|||||||||||||||
 plot_historical_elo|function|9ca8fd3752109da3|||||||||||||||
 plot_team_elo|function|979c863a74078fcc|||||||||||||||
 prep_cfb_games|function|5ff8200b24ab8828|||||||||||||||
+report|stem|f0f2c5b4cd9e63bb|f8661a446eb0f0c9|dc69178724cb695f|787668912|report.html*report.qmd|t19953.9733923926s|ac5c0a303dd38947|1780000|file|local|vector|||3.914|ggrepel 5 unlabeled data points too many overlaps. Consider increasing max.overlaps|
 seasons|stem|ab38efdf3951d405|c05ad05b2f958afa|2c530c1562a7fbd1|-1489586350||t19951.7910716379s|bdc53509363bb091|209|qs|local|vector|||2.402||
 spread_games|stem|353ab45e8bec877b|949f20882b898a54|335e97cff5832067|-124732928||t19951.8058448516s|62fad38b0edfe7e0|5394322|qs|local|vector|||0.004||
 spread_model|stem|8a08d7efc2e57262|ddd1226530507433|a0bce04e2b0045d9|-854635681||t19951.828781618s|b2093c869f98f017|14543998|qs|local|vector|||0.011||

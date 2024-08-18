@@ -150,9 +150,11 @@ elo_and_betting_lines |>
                vegas_spread = formatted_spread,
                elo_spread,
                diff) |>
+        group_by(season, provider) |>
         gt::gt() |>
-        gt::cols_align(align = "center") |>
-        gt::opt_interactive()
+        gtExtras::gt_theme_espn()
+      #  gt::cols_align(align = "center") |>
+       # gt::opt_interactive()
 
 ```
 
